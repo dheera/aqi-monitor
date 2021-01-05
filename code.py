@@ -99,11 +99,7 @@ link.log("info", "pm25 initialized")
 link.sync()
 
 while True:
-
-    # print("\033[2J")
-    # print("eCO2 = %d ppm TVOC = %d ppb" % (sgp30.eCO2, sgp30.TVOC))
     t = time.monotonic_ns()
-
     data = {}
 
     if pm25 is not None:
@@ -119,12 +115,6 @@ while True:
         try:
             if scd30.data_available:
                 print("data available")
-                #print("eCO2", scd30.eCO2, "ppm")
-                #print("temp", scd30.temperature, "C")
-                #print("hum", scd30.relative_humidity, "rH")
-                data["/scd30/co2"] = scd30.eCO2
-                data["/scd30/temp"] = scd30.temperature
-                data["/scd30/hum"] = scd30.relative_humidity
                 link.message("/scd30/co2", "std_msgs/Float32", {"data": scd30.eCO2})
                 link.message("/scd30/humidity", "std_msgs/Float32", {"data": scd30.relative_humidity})
                 link.message("/scd30/temp", "std_msgs/Float32", {"data": scd30.temperature})
@@ -133,49 +123,26 @@ while True:
 
     if gas is not None:
         gas_data = gas.measure_all()
-        data["/mcgasv2/raw"] = gas_data
         link.message("/mcgasv2/raw", "std_msgs/Float32", {"data": gas_data})
 
     if ozone is not None:
         ozone_ppb = ozone.get_ozone_data(10)
-        data["/sen0321/ozone"] = ozone.get_ozone_data(10)
         link.message("/sen0321/ozone", "std_msgs/Float32", {"data": ozone_ppb})
 
-    #print("eCO2 = %d ppm" % sgp30.eCO2)
-    #print("TVOC = %d ppb" % sgp30.TVOC)
-    #print('Light: {0}lux'.format(tsl2591.lux))
-    #print('Visible: {0}'.format(tsl2591.visible))
-    #print('Infrared: {0}'.format(tsl2591.infrared))
-
     if bme680 is not None:
-        # print('pressure: {}hPa'.format(bme680.pressure))
-        data["/bme680/pressure"] = bme680.pressure
         link.message("/bme680/pressure", "std_msgs/Float32", {"data": bme680.pressure})
-    #print('Temperature: {} degrees C'.format(bme680.temperature))
-    #print('Gas: {} ohms'.format(bme680.gas))
-    #print('humidity: {}%'.format(bme680.humidity))
-    # print('Light: {0}lux'.format(tsl2591.lux))
-    # print('Visible: {0}'.format(tsl2591.visible))
-    # print('Infrared: {0}'.format(tsl2591.infrared))
 
     if bno is not None:
-        data["/bno085/acceleration"] = list(bno.acceleration)
+        pass
+        # do something
         # print("acc", bno.acceleration)
-        #print("gyr", bno.gyro)
-        #print("mag", bno.magnetic)
-        #print("quat", bno.quaternion)
+        # print("gyr", bno.gyro)
+        # print("mag", bno.magnetic)
+        # print("quat", bno.quaternion)
 
-    print(data)
     print("loop time", (time.monotonic_ns() - t)/1.0e6, "ms")
 
     link.sync()
     time.sleep(2)
-    # requests.post("http://192.168.1.4:8888/devices/foo/data", headers = {"Content-Type": "application/json"}, json = data).content
-    # requests.post("http://haystack.dheera.net/devices/aqm0/data", headers = {"Content-Type": "application/json", "Authorization": "Basic AXVubzpwQDU1dzByYM=="}, json = data).content
 
-
-#while True:
-#    quat = bno.rotation_vector
-#    print("Rotation Vector Quaternion:")
-#    print("I: %0.3f J: %0.3f K: %0.3f Accuracy: %0.3f"%(quat.i, quat.j, quat.k, quat.accuracy))
 
