@@ -43,7 +43,7 @@ class Gas(object):
 
         self.i2c.unlock()
 
-        return [no2, c2h50h, voc, co]
+        return [self.calcVol(no2), self.calcVol(c2h50h), self.calcVol(voc), self.calcVol(co)]
 
     def measure_NO2(self):
         while not self.i2c.try_lock():

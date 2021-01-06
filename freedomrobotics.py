@@ -10,7 +10,7 @@ ERROR = 8
 FATAL = 16
 
 class NanoLink(object):
-    def __init__(self, account = None, device = None, token = None, secret = None, auto_sync = True, requests = None, debug = True):
+    def __init__(self, account = None, device = None, token = None, secret = None, auto_sync = True, requests = None, debug = False):
         self.debug = debug
         self.requests = requests
         if self.requests is None:
@@ -49,10 +49,14 @@ class NanoLink(object):
                 self._data_url,
                 headers = headers,
                 json = self._outgoing_message_queue,
-            ).content
+            )
             if self.debug:
-                print(result)
-            self._outgoing_message_queue = []
+                print(result.status_code, result.content)
+
+            if result.status_code != 200:
+                print("sync error: " + str(result.status_code) + ": " + result.content)
+            else:
+                self._outgoing_message_queue = []
         except:
             print("sync error")
 
