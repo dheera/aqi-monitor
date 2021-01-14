@@ -18,7 +18,7 @@ class NanoLink(object):
             self.requests = requests
 
         if account is None or device is None or token is None or secret is None:
-            with open(".freedom_credentials") as f:
+            with open("credentials.json") as f:
                 credentials = json.loads(f.read())
             self.account = credentials["account"]
             self.device = credentials["device"]
@@ -31,11 +31,39 @@ class NanoLink(object):
             self.secret = secret
 
         self._url = "https://api.freedomrobotics.ai/"
+        self._device_url = "%s/accounts/%s/devices/%s" % (self._url.strip("/"), self.account, self.device)
         self._data_url = "%s/accounts/%s/devices/%s/data" % (self._url.strip("/"), self.account, self.device)
         self.auto_sync = auto_sync
         self._outgoing_message_queue = []
+        self.device = {}
+        self._update_device()
+
+    def _update_device(self):
+        headers = {
+            "mc_token": self.token,
+            "mc_secret": self.secret,
+        }
+        try:
+            result = self.requests.get(
+                self._device_url,
+                headers = headers,
+            )
+            if result.status_code != 200:
+                print("[freedomrobotics] update device error: " + str(result.status_code) + ": " + result.content)
+                return False
+        except:
+            print("[freedomrobotics] update device error")
+            return False
+        
+        self.device = json.loads(result.content)
+        self._last_update_device_time = time.monotonic_ns() / 1e9
+
+        return True
 
     def sync(self):
+        if time.monotonic_ns() / 1e9 - self._last_update_device_time > 1800:
+            self._update_device()
+
         headers = {
             "mc_token": self.token,
             "mc_secret": self.secret,
@@ -44,6 +72,7 @@ class NanoLink(object):
             print(self._data_url)
             print(headers)
             print(self._outgoing_message_queue)
+
         try:
             result = self.requests.put(
                 self._data_url,
@@ -54,11 +83,15 @@ class NanoLink(object):
                 print(result.status_code, result.content)
 
             if result.status_code != 200:
-                print("sync error: " + str(result.status_code) + ": " + result.content)
+                print("[freedomrobotics] sync error: " + str(result.status_code) + ": " + result.content)
+                return False
             else:
                 self._outgoing_message_queue = []
-        except:
-            print("sync error")
+        except Exception as e:
+            raise Exception("[freedomrobotics] sync error")
+            return False
+
+        return True
 
     def log(self, level, msg, stack_trace=None):
         if type(level) is str:
