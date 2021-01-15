@@ -91,8 +91,6 @@ def display(line, text):
         text_area = label.Label(terminalio.FONT, text=text, color=0xFFFFFF, x=0, y=3+10*line)
         splash[1+line] = text_area
 
-display
-
 print("init net")
 display(0, "init net")
 from net import requests
