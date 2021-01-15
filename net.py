@@ -6,13 +6,12 @@ import socketpool
 import ssl
 import time
 import wifi
-
  
-# Get wifi details and more from a secrets.py file
 try:
-    from secrets import secrets
+    with open("wifi.json") as f:
+        config_wifi = json.loads(f.read())
 except ImportError:
-    print("WiFi secrets are kept in secrets.py, please add them there!")
+    print("WiFi secrets are kept in wifi.json, please add them there!")
     raise
  
 print("ESP32-S2 WebClient Test")
@@ -25,9 +24,9 @@ for network in wifi.radio.start_scanning_networks():
             network.rssi, network.channel))
 wifi.radio.stop_scanning_networks()
  
-print("Connecting to %s"%secrets["ssid"])
-wifi.radio.connect(secrets["ssid"], secrets["password"])
-print("Connected to %s!"%secrets["ssid"])
+print("Connecting to %s" % config_wifi["ssid"])
+wifi.radio.connect(config_wifi["ssid"], config_wifi["password"])
+print("Connected to %s! " % config_wifi["ssid"])
 print("My IP address is", wifi.radio.ipv4_address)
  
 #ipv4 = ipaddress.ip_address("8.8.4.4")
