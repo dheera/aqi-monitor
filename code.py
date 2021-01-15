@@ -57,7 +57,7 @@ if LOAD_WATCHDOG:
 print("init i2c")
 i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
 if LOAD_PMSA003I:
-    # this needs its own i2c bus because it seems to mess with other i2c devices
+    # PMSA003I needs its own i2c bus because it seems to mess with other i2c devices
     # it also needs a much lower i2c clock frequency per adafruit docs
     # fortunately the feathers2 has 2 i2c controllers and we can instantiate the 2nd one
     # on pins IO17 and IO18 which are very close to 3V and GND pins so
@@ -90,8 +90,8 @@ if LOAD_DISPLAY:
     text_area = label.Label(terminalio.FONT, text=text, color=0xFFFFFF, x=0, y=23)
     splash.append(text_area)
 
-if LOAD_WATCHDOG:
-    w.feed()
+    if LOAD_WATCHDOG:
+        w.feed()
 
 def display(line, text):
     if LOAD_DISPLAY:
@@ -105,15 +105,16 @@ from net import requests
 if LOAD_WATCHDOG:
     w.feed()
 
-print("init link")
-display(0, "init link")
-link = freedomrobotics.NanoLink(requests = requests, auto_sync = False)
+if LOAD_FREEDOM:
+    print("init link")
+    display(0, "init link")
+    link = freedomrobotics.NanoLink(requests = requests, auto_sync = False)
 
-print("device:")
-print(link.device)
+    print("device:")
+    print(link.device)
 
-if LOAD_WATCHDOG:
-    w.feed()
+    if LOAD_WATCHDOG:
+        w.feed()
 
 def log(text):
     print(text)
