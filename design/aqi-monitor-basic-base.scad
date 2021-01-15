@@ -116,20 +116,7 @@ module mcgasv2() {
     }
 }
 
-module scd30() {
-        difference() {
-            union() {
-    for(q=[-20:20:20]) for(r=[-20,20])
-    translate([q,r,0]) standoff(sh=4,d=6,screw=2);
-    for(q=[-30,30]) for(r=[-10,10])
-    translate([q,r,0]) standoff(sh=4,d=6,screw=2);
-    
-    quadboard(W=2.0*25.4,H=1.0*25.4,w=1.8*25.4,h=.8*25.4,screw=2.5);
-        cube_center([60,40,0.15]);
-}
-        linear_extrude(height = 0.5) text("SCD30", valign="center", halign="center",size=5);
-    }
-}
+
 
 module display() {
     quadboard(W=1.35*25.4,w=1.10*25.4,H=0.86*25.4,h=0.65*25.4, text = "DISPLAY",screw=2.5,sh=14);
