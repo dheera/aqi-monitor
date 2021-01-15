@@ -50,13 +50,20 @@ if LOAD_BNO08X:
     import adafruit_bno08x
     from adafruit_bno08x.i2c import BNO08X_I2C
 if LOAD_PMSA003I:
-    from adafruit_pm25.i2c import PMSA003I_I2C
+    from adafruit_pm25.i2c import PM25_I2C
 if LOAD_WATCHDOG:
     w.feed()
 
 print("init i2c")
 i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
-i2c1 = busio.I2C(board.IO17, board.IO18, frequency=100000)
+if LOAD_PMSA003I:
+    # this needs its own i2c bus because it seems to mess with other i2c devices
+    # it also needs a much lower i2c clock frequency per adafruit docs
+    # fortunately the feathers2 has 2 i2c controllers and we can instantiate the 2nd one
+    # on pins IO17 and IO18 which are very close to 3V and GND pins so
+    # you can solder a JST-EH connector with 5 or more positions to [3V, 0, GND, 17, 18]
+    # also, @unexpectedmaker warned on discord not to use IO0 for i2c
+    i2c1 = busio.I2C(board.IO17, board.IO18, frequency=100000)
 
 if LOAD_WATCHDOG:
     w.feed()
@@ -200,7 +207,7 @@ if LOAD_PMSA003I:
     link.sync()
 
     pm25 = None
-    pm25 = PMSA003I_I2C(i2c1, None)
+    pm25 = PM25_I2C(i2c1, None)
 
     if LOAD_WATCHDOG:
         w.feed()
