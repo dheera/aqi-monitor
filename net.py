@@ -14,34 +14,29 @@ except ImportError:
     print("WiFi secrets are kept in wifi.json, please add them there!")
     raise
  
-print("ESP32-S2 WebClient Test")
+print("mac address:", [hex(i) for i in wifi.radio.mac_address])
  
-print("My MAC addr:", [hex(i) for i in wifi.radio.mac_address])
- 
-print("Available WiFi networks:")
+print("available wifi networks:")
 for network in wifi.radio.start_scanning_networks():
     print("\t%s\t\tRSSI: %d\tChannel: %d" % (str(network.ssid, "utf-8"),
             network.rssi, network.channel))
 wifi.radio.stop_scanning_networks()
  
-print("Connecting to %s" % config_wifi["ssid"])
+print("connecting to %s" % config_wifi["ssid"])
 wifi.radio.connect(config_wifi["ssid"], config_wifi["password"])
-print("Connected to %s! " % config_wifi["ssid"])
-print("My IP address is", wifi.radio.ipv4_address)
- 
-#ipv4 = ipaddress.ip_address("8.8.4.4")
-#print("Ping google.com: %f ms" % (wifi.radio.ping(ipv4)*1000))
+print("connected to %s! " % config_wifi["ssid"])
+print("ip address:", wifi.radio.ipv4_address)
  
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-print("Setting system time")
+print("setting system time")
 
 response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC")
 if response.status_code == 200:
     r = rtc.RTC()
     r.datetime = time.localtime(json.loads(response.content)["unixtime"])
-    print(f"System Time: {r.datetime}")
+    print(f"system Time: {r.datetime}")
 else:
-    print("Setting time failed")
+    print("setting time failed")
 
