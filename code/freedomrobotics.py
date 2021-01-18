@@ -47,6 +47,7 @@ class NanoLink(object):
             result = self.requests.get(
                 self._device_url,
                 headers = headers,
+                timeout = 10,
             )
             if result.status_code != 200:
                 print("[freedomrobotics] update device error: " + str(result.status_code) + ": " + result.content)
@@ -78,6 +79,7 @@ class NanoLink(object):
                 self._data_url,
                 headers = headers,
                 json = self._outgoing_message_queue,
+                timeout = 5,
             )
             if self.debug:
                 print(result.status_code, result.content)

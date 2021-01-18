@@ -32,11 +32,15 @@ requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 print("setting system time")
 
-response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC")
-if response.status_code == 200:
-    r = rtc.RTC()
-    r.datetime = time.localtime(json.loads(response.content)["unixtime"])
-    print(f"system Time: {r.datetime}")
-else:
-    print("setting time failed")
-
+i = 0
+while True:
+    print("try %d" % i)
+    response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC")
+    if response.status_code == 200:
+        r = rtc.RTC()
+        r.datetime = time.localtime(json.loads(response.content)["unixtime"])
+        print(f"system Time: {r.datetime}")
+        break
+    else:
+        print("setting time failed")
+    i += 1
