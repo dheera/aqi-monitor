@@ -34,13 +34,25 @@ print("setting system time")
 
 i = 0
 while True:
-    print("try %d" % i)
-    response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC")
+    print("trying worldtimeapi.org ... (%d)" % i)
+    utc_time = None
+    response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
     if response.status_code == 200:
-        r = rtc.RTC()
-        r.datetime = time.localtime(json.loads(response.content)["unixtime"])
-        print(f"system Time: {r.datetime}")
-        break
+        utc_time = time.localtime(json.loads(response.content)["unixtime"])
+        print("success")
     else:
-        print("setting time failed")
+        print("worldtimeapi.org did not respond")
+
+    print("trying api.freedomrobotics.ai ... (%d)" % i)
+    response = requests.get("https://api.freedomrobotics.ai/utc_now")
+    if response.status_code == 200:
+        utc_time = time.localtime(json.loads(response.content)["timestamp"], timeout = 10)
+        print("success")
+
+    if utc_time is not None:
+        r = rtc.RTC()
+        r.datetime = utc_time
+        print("setting system time to:", utc_time)
+        break
+
     i += 1
