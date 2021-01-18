@@ -245,13 +245,19 @@ while True:
     if LOAD_SCD30:
         try:
             if scd30.data_available:
-                data.append(("/scd30/co2", "std_msgs/Float32", {"data": scd30.eCO2}))
-                data.append(("/scd30/humidity", "std_msgs/Float32", {"data": scd30.relative_humidity}))
-                data.append(("/scd30/temp", "std_msgs/Float32", {"data": scd30.temperature}))
+                co2 = scd30.eCO2
+                humidity = scd30.relative_humidity
+                temp = scd30.temperature
+                if co2 > 0:
+                    data.append(("/scd30/co2", "std_msgs/Float32", {"data": co2}))
+                if humidity > 0:
+                    data.append(("/scd30/humidity", "std_msgs/Float32", {"data": humidity}))
+                if temp > 0:
+                    data.append(("/scd30/temp", "std_msgs/Float32", {"data": temp}))
                 if display_page == 2:
-                    display(0, "CO2:   %.2f ppm" % scd30.eCO2)
-                    display(1, "Hum:   %.2f pc" % scd30.relative_humidity)
-                    display(2, "Temp:  %.2f C" % scd30.temperature)
+                    display(0, "CO2:   %.2f ppm" % co2)
+                    display(1, "Hum:   %.2f pc" %humidity)
+                    display(2, "Temp:  %.2f C" % temp)
         except:
             print("error reading scd30 data")
 
