@@ -9,6 +9,13 @@ WARN = 4
 ERROR = 8
 FATAL = 16
 
+def get_utc_now(requests):
+    url = "https://api.freedomrobotics.ai/utc_now"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return time.localtime(json.loads(response.content)["timestamp"])
+    return None
+
 class NanoLink(object):
     def __init__(self, account = None, device = None, token = None, secret = None, auto_sync = True, requests = None, debug = False):
         self.debug = debug
