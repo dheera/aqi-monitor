@@ -43,11 +43,11 @@ while True:
     else:
         print("worldtimeapi.org did not respond")
 
-    print("trying api.freedomrobotics.ai ... (%d)" % i)
-    response = requests.get("https://api.freedomrobotics.ai/utc_now")
-    if response.status_code == 200:
-        utc_time = time.localtime(json.loads(response.content)["timestamp"], timeout = 10)
-        print("success")
+        print("trying api.freedomrobotics.ai ... (%d)" % i)
+        response = requests.get("https://api.freedomrobotics.ai/utc_now", timeout = 10)
+        if response.status_code == 200:
+            utc_time = time.localtime(json.loads(response.content)["timestamp"])
+            print("success")
 
     if utc_time is not None:
         r = rtc.RTC()
