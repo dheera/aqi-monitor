@@ -286,7 +286,7 @@ while True:
     if LOAD_BME680:
         try:
             data.append(("/bme680/pressure", "std_msgs/Float32", {"data": bme680.pressure}))
-            if scd30 is not None:
+            if LOAD_SCD30:
                 scd30.ambient_pressure = int(bme680.pressure)
             data.append(("/bme680/humidity", "std_msgs/Float32", {"data": bme680.relative_humidity}))
             data.append(("/bme680/temp", "std_msgs/Float32", {"data": bme680.temperature}))
