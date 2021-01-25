@@ -32,27 +32,33 @@ requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 print("setting system time")
 
-i = 0
-while True:
-    print("trying worldtimeapi.org ... (%d)" % i)
-    utc_time = None
-    response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
-    if response.status_code == 200:
-        utc_time = time.localtime(json.loads(response.content)["unixtime"])
-        print("success")
-    else:
-        print("worldtimeapi.org did not respond")
+def time_set(utc_time):
+    r = rtc.RTC()
+    r.datetime = utc_time
+    print("setting system time to:", utc_time)
 
+def time_sync():
+    i = 0
+    while True:
         print("trying api.freedomrobotics.ai ... (%d)" % i)
         response = requests.get("https://api.freedomrobotics.ai/utc_now", timeout = 10)
         if response.status_code == 200:
             utc_time = time.localtime(json.loads(response.content)["timestamp"])
             print("success")
+            time_set(utc_time)
+            break
 
-    if utc_time is not None:
-        r = rtc.RTC()
-        r.datetime = utc_time
-        print("setting system time to:", utc_time)
-        break
+        print("trying worldtimeapi.org ... (%d)" % i)
+        response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
+        if response.status_code == 200:
+            utc_time = time.localtime(json.loads(response.content)["unixtime"])
+            print("success")
+            time_set(utc_time)
+            break 
 
-    i += 1
+        i += 1
+
+        if i >= 10:
+            raise Exception("Time set failed")
+
+        time.sleep(1.0)

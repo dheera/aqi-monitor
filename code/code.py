@@ -90,7 +90,8 @@ def display(line, text):
 
 print("init net")
 display(0, "init net")
-from net import requests
+from net import requests, time_sync
+time_sync()
 
 if LOAD_WATCHDOG:
     w.feed()
@@ -205,7 +206,10 @@ if LOAD_PMSA003I:
 
 display_page = 0
 
+seq = 0
+
 while True:
+
     display_page = (display_page + 1) % 6
 
     t = time.monotonic_ns()
@@ -327,6 +331,9 @@ while True:
         if LOAD_WATCHDOG:
             w.feed()
 
+    seq += 1
+
+    if seq % 300 == 0:
+        time_sync()
+
     time.sleep(2)
-
-
