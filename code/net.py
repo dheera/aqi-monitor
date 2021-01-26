@@ -1,6 +1,7 @@
 import adafruit_requests
 import ipaddress
 import json
+import re
 import rtc
 import socketpool
 import ssl
@@ -43,16 +44,20 @@ def time_sync():
         print("trying api.freedomrobotics.ai ... (%d)" % i)
         response = requests.get("https://api.freedomrobotics.ai/utc_now", timeout = 10)
         if response.status_code == 200:
-            utc_time = time.localtime(json.loads(response.content)["timestamp"])
-            print("success")
+            # the following is a hack to convert freedom's time response to an integer
+            # before JSON decoding it since circuitpython only has single-precision floats
+            # which will mangle the time
+            content = re.sub("\\.[0-9]+", "", response.content)
+            utc_time = time.localtime(int(json.loads(content)["timestamp"]))
+            print("setting time to", utc_time)
             time_set(utc_time)
             break
 
         print("trying worldtimeapi.org ... (%d)" % i)
         response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
         if response.status_code == 200:
-            utc_time = time.localtime(json.loads(response.content)["unixtime"])
-            print("success")
+            utc_time = time.localtime(int(json.loads(response.content)["unixtime"]))
+            print("setting time to", utc_time)
             time_set(utc_time)
             break 
 
@@ -62,3 +67,5 @@ def time_sync():
             raise Exception("Time set failed")
 
         time.sleep(1.0)
+
+print("time is", time.time())
