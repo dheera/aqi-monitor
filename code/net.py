@@ -31,7 +31,7 @@ print("ip address:", wifi.radio.ipv4_address)
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-print("setting system time")
+print("setting system time ...")
 
 def time_set(utc_time):
     r = rtc.RTC()
@@ -49,7 +49,6 @@ def time_sync():
             # which will mangle the time
             content = re.sub("\\.[0-9]+", "", response.content)
             utc_time = time.localtime(int(json.loads(content)["timestamp"]))
-            print("setting time to", utc_time)
             time_set(utc_time)
             break
 
@@ -57,14 +56,13 @@ def time_sync():
         response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
         if response.status_code == 200:
             utc_time = time.localtime(int(json.loads(response.content)["unixtime"]))
-            print("setting time to", utc_time)
             time_set(utc_time)
             break 
 
         i += 1
 
         if i >= 10:
-            raise Exception("Time set failed")
+            raise Exception("time set failed")
 
         time.sleep(1.0)
 
