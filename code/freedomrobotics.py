@@ -1,3 +1,4 @@
+import sys
 import time
 import json
 
@@ -97,6 +98,7 @@ class NanoLink(object):
             else:
                 self._outgoing_message_queue = []
         except Exception as e:
+            sys.print_exception(e)
             raise Exception("[freedomrobotics] sync error")
             return False
 
