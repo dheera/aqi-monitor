@@ -4,6 +4,7 @@ import board
 import busio
 import gc
 import os
+import sys
 import time
 import microcontroller
 from config import *
@@ -326,10 +327,13 @@ while True:
 
     print("loop", (time.monotonic_ns() - t)/1.0e6, "ms")
 
-    if LOAD_FREEDOM and link.sync():
-        # sync to freedom was successful
-        if LOAD_WATCHDOG:
-            w.feed()
+    try:
+        if LOAD_FREEDOM and link.sync():
+            # sync to freedom was successful
+            if LOAD_WATCHDOG:
+                w.feed()
+    except Exception as e:
+        sys.print_exception(e)
 
     seq += 1
 
