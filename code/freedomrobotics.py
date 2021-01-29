@@ -44,6 +44,7 @@ class NanoLink(object):
         self.auto_sync = auto_sync
         self._outgoing_message_queue = []
         self.device = {}
+        self._last_update_device_time = 0
         self._update_device()
 
     def _update_device(self):
