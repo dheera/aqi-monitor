@@ -4,6 +4,8 @@ import rtc
 import sys
 import time
 
+__version__ = "1.0.0"
+
 UPLOAD_QUEUE_MAX_SIZE = 127
 LOG_LEVELS = {"debug": 1, "info": 2, "warn": 4, "warning": 4, "error": 8, "fatal": 16}
 DEBUG = 1
@@ -14,6 +16,7 @@ FATAL = 16
 
 class NanoLink(object):
     def __init__(self, account = None, device = None, token = None, secret = None, auto_time_sync = True, auto_sync = True, requests = None, debug = False):
+        self.__version__ = __version __
         self.debug = debug
         self.requests = requests
         if self.requests is None:
