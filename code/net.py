@@ -13,7 +13,7 @@ except ImportError:
     print("WiFi secrets are kept in wifi.json, please add them there!")
     raise
  
-print("mac address:", [hex(i) for i in wifi.radio.mac_address])
+print("mac address:", ":".join(["%02x"] * 6) % tuple(map(int, wifi.radio.mac_address)))
  
 print("available wifi networks:")
 for network in wifi.radio.start_scanning_networks():

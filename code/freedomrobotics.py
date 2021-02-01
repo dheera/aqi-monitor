@@ -4,9 +4,8 @@ import rtc
 import sys
 import time
 
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 
-UPLOAD_QUEUE_MAX_SIZE = 127
 LOG_LEVELS = {"debug": 1, "info": 2, "warn": 4, "warning": 4, "error": 8, "fatal": 16}
 DEBUG = 1
 INFO = 2
@@ -15,10 +14,14 @@ ERROR = 8
 FATAL = 16
 
 class NanoLink(object):
-    def __init__(self, account = None, device = None, token = None, secret = None, auto_time_sync = True, auto_sync = True, requests = None, debug = False):
-        self.__version__ = __version __
+    def __init__(self, account = None, device = None, token = None, secret = None, auto_time_sync = True, auto_sync = True, requests = None, debug = False, max_queue_size = 127):
+        self.__version__ = __version__
+        self.auto_time_sync = auto_time_sync
+        self.auto_sync = auto_sync
         self.debug = debug
         self.requests = requests
+        self.max_queue_size = max_queue_size
+
         if self.requests is None:
             import requests
             self.requests = requests
@@ -39,12 +42,11 @@ class NanoLink(object):
         self._url = "https://api.freedomrobotics.ai/"
         self._device_url = "%s/accounts/%s/devices/%s" % (self._url.strip("/"), self.account, self.device)
         self._data_url = "%s/accounts/%s/devices/%s/data" % (self._url.strip("/"), self.account, self.device)
-        self.auto_time_sync = auto_time_sync
-        self.auto_sync = auto_sync
         self._outgoing_message_queue = []
-        self.device = {}
         self._last_time_sync_time = 0
         self._last_update_device_time = 0
+        self.device = {}
+
         self._time_sync()
         self._update_device()
 
@@ -89,7 +91,7 @@ class NanoLink(object):
                 # which will mangle the time
                 content = re.sub("\\.[0-9]+", "", response.content)
                 utc_time = time.localtime(int(json.loads(content)["timestamp"]))
-                self.time_set(utc_time)
+                self._time_set(utc_time)
                 self._last_time_sync_time = time.time()
                 break
 
@@ -97,7 +99,7 @@ class NanoLink(object):
             response = self.requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
             if response.status_code == 200:
                 utc_time = time.localtime(int(json.loads(response.content)["unixtime"]))
-                self.time_set(utc_time)
+                self._time_set(utc_time)
                 self._last_time_sync_time = time.time()
                 break 
 
@@ -172,7 +174,7 @@ class NanoLink(object):
               "data": msg,
         })
 
-        while len(self._outgoing_message_queue) > UPLOAD_QUEUE_MAX_SIZE:
+        while len(self._outgoing_message_queue) > self.max_queue_size:
             del(self._outgoing_message_queue[0])
 
         if self.auto_sync:

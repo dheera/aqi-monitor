@@ -91,8 +91,8 @@ def display(line, text):
 
 print("init net")
 display(0, "init net")
-from net import requests, time_sync
-time_sync()
+
+from net import requests
 
 if LOAD_WATCHDOG:
     w.feed()
@@ -336,8 +336,5 @@ while True:
         sys.print_exception(e)
 
     seq += 1
-
-    if seq % 300 == 0:
-        time_sync()
 
     time.sleep(2)
