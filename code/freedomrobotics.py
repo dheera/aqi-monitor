@@ -12,13 +12,6 @@ WARN = 4
 ERROR = 8
 FATAL = 16
 
-def get_utc_now(requests):
-    url = "https://api.freedomrobotics.ai/utc_now"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return time.localtime(json.loads(response.content)["timestamp"])
-    return None
-
 class NanoLink(object):
     def __init__(self, account = None, device = None, token = None, secret = None, auto_time_sync = True, auto_sync = True, requests = None, debug = False):
         self.debug = debug
@@ -43,8 +36,8 @@ class NanoLink(object):
         self._url = "https://api.freedomrobotics.ai/"
         self._device_url = "%s/accounts/%s/devices/%s" % (self._url.strip("/"), self.account, self.device)
         self._data_url = "%s/accounts/%s/devices/%s/data" % (self._url.strip("/"), self.account, self.device)
-        self.auto_sync = auto_sync
         self.auto_time_sync = auto_time_sync
+        self.auto_sync = auto_sync
         self._outgoing_message_queue = []
         self.device = {}
         self._last_time_sync_time = 0
@@ -55,37 +48,6 @@ class NanoLink(object):
     def _time_set(self, utc_time):
         r = rtc.RTC()
         r.datetime = utc_time
-        print("setting system time to:", utc_time)
-
-    def _time_sync(self):
-        if not self.auto_time_sync:
-            return
-
-        i = 0
-        while True:
-            print("trying api.freedomrobotics.ai ... (%d)" % i)
-            response = requests.get("https://api.freedomrobotics.ai/utc_now", timeout = 10)
-            if response.status_code == 200:
-                # the following is a hack to convert freedom's time response to an integer
-                # before JSON decoding it since circuitpython only has single-precision floats
-                # which will mangle the time
-                content = re.sub("\\.[0-9]+", "", response.content)
-                self.utc_time = time.localtime(int(json.loads(content)["timestamp"]))
-                time_set(utc_time)
-                self._last_time_sync_time = time.time()
-                break
-
-            print("trying worldtimeapi.org ... (%d)" % i)
-            response = requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
-            if response.status_code == 200:
-                utc_time = time.localtime(int(json.loads(response.content)["unixtime"]))
-                self.time_set(utc_time)
-                self._last_time_sync_time = time.time()
-                break 
-            i += 1
-            if i >= 10:
-                raise Exception("time set failed")
-            time.sleep(1.0)
 
     def _update_device(self):
         headers = {
@@ -104,15 +66,47 @@ class NanoLink(object):
         except:
             print("[freedomrobotics] update device error")
             return False
-        
+       
         self.device = json.loads(result.content)
         self._last_update_device_time = time.monotonic_ns() / 1e9
 
         return True
 
+    def _time_sync(self):
+        if not self.auto_time_sync:
+            return
+
+        i = 0
+        while True:
+            print("trying api.freedomrobotics.ai ... (%d)" % i)
+            response = self.requests.get("https://api.freedomrobotics.ai/utc_now", timeout = 10)
+            if response.status_code == 200:
+                # the following is a hack to convert freedom's time response to an integer
+                # before JSON decoding it since circuitpython only has single-precision floats
+                # which will mangle the time
+                content = re.sub("\\.[0-9]+", "", response.content)
+                utc_time = time.localtime(int(json.loads(content)["timestamp"]))
+                self.time_set(utc_time)
+                self._last_time_sync_time = time.time()
+                break
+
+            print("trying worldtimeapi.org ... (%d)" % i)
+            response = self.requests.get("http://worldtimeapi.org/api/timezone/Etc/UTC", timeout = 10)
+            if response.status_code == 200:
+                utc_time = time.localtime(int(json.loads(response.content)["unixtime"]))
+                self.time_set(utc_time)
+                self._last_time_sync_time = time.time()
+                break 
+
+            i += 1
+    
+            if i >= 10:
+                raise Exception("time set failed")
+
     def sync(self):
         if time.monotonic_ns() / 1e9 - self._last_update_device_time > 1800:
             self._update_device()
+
         if time.monotonic_ns() / 1e9 - self._last_time_sync_time > 600:
             self._time_sync()
 
