@@ -33,11 +33,11 @@
   difference() {
               for(s=[-1,1]) for(t=[-1,0,1])
             translate([s*97/2,t*172/2])
-            cube_center([8,8,8-0.15]);
+            cube_center([8.3,8.3,8-0.15]);
           
   for(s=[-1,1]) for(t=[-1,0,1]) {
-        translate([s*97/2,t*172/2,3]) {
-            cylinder(d=4.7,h=5,$fn=32);
+        translate([s*97/2,t*172/2,1.5]) {
+            cylinder(d=5.4,h=15,$fn=64);
         }
     }
 }
@@ -55,7 +55,7 @@ module usbplugshape(Q=12,R=7) {
 }
     
 
-module cube_center(dims,r=0,$fn=16) {
+module cube_center(dims,r=0,$fn=64) {
     if(r==0) {
         translate([-dims[0]/2, -dims[1]/2, 0])
         cube(dims);

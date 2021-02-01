@@ -14,7 +14,7 @@ difference() {
     for(s=[-1,1]) for(t=[-1,0,1]) {
         translate([s*97/2,t*172/2]) {
             cylinder(d=6,h=3.5,$fn=32);
-            cylinder(d=3.3,h=50,$fn=32);
+            cylinder(d=3.5,h=50,$fn=32);
         }
     }
 }
@@ -112,8 +112,9 @@ module gamma() {
     
     difference() {
         cube_center([88,21,0.15]);
-        linear_extrude(height = 0.5) text("RADSENS", valign="center", halign="center",size=4);
+        cube_center([88-1,21-1,0.3]);
     }
+    linear_extrude(height = 0.15) text("RADSENS", font = "Liberation Sans:style=Bold", valign="center", halign="center",size=4);
     
     translate([83/2,21/2-8,0])
     standoff(sh=4,screw=2.5);
@@ -130,9 +131,10 @@ module mcgasv2() {
     translate([0,-40/2,0]) standoff(sh=4,d=6,screw=2);
     difference() {
         cube_center([20,40,0.15]);
-        rotate([0,0,90])
-        linear_extrude(height = 0.5) text("MCGASV2", valign="center", halign="center",size=4);
+        cube_center([20-1,40-1,0.3]);
     }
+    rotate([0,0,90])
+    linear_extrude(height = 0.15) text("MCGASV2", font = "Liberation Sans:style=Bold", valign="center", halign="center",size=4);
 }
 
 module scd30() {
@@ -143,15 +145,15 @@ module scd30() {
     for(q=[-30,30]) for(r=[-10,10])
     translate([q,r,0]) standoff(sh=4,d=6,screw=2);
     
-    quadboard(W=2.0*25.4,H=1.0*25.4,w=1.8*25.4,h=.8*25.4,screw=2.5);
-        cube_center([60,40,0.15]);
+    quadboard(W=2.0*25.4,H=1.0*25.4,w=1.8*25.4,h=.8*25.4,screw=2.5, text="SCD30");
+        //cube_center([60,40,0.15]);
 }
-        linear_extrude(height = 0.5) text("SCD30", valign="center", halign="center",size=5);
     }
+    
 }
 
 module display() {
-    quadboard(W=1.35*25.4,w=1.10*25.4,H=0.86*25.4,h=0.65*25.4, text = "DISPLAY",screw=2.5,sh=14);
+    quadboard(W=1.35*25.4,w=1.10*25.4,H=0.86*25.4,h=0.65*25.4, text = "DISPLAY",screw=2.5,sh=14,d=6);
 }
 
 module feathers2() {
@@ -185,7 +187,10 @@ module bno085() {
 module qwiicstar() {
     translate([-7.5/2,-7.5/2,0]) standoff(sh=4,d=6,screw=3);
     translate([7.5/2,7.5/2,0]) standoff(sh=4,d=6,screw=3);
-    cube_center([26,26,0.15]);
+    difference() {
+        cube_center([26,26,0.15]);
+        cube_center([26-1,26-1,0.3]);
+    }
 }
 
 module quadboard(W=25,w=20.25,H=18,h=13,sh=4,screw=2.5,d=5, text = "") {
@@ -195,14 +200,17 @@ module quadboard(W=25,w=20.25,H=18,h=13,sh=4,screw=2.5,d=5, text = "") {
     translate([w/2,h/2,0]) standoff(sh=sh,screw=screw,d=d);
     difference() {
         cube_center([W,H,0.15]);
-        linear_extrude(height = 0.5) text(text, valign="center", halign="center",size=4);
+        cube_center([W-1,H-1,0.3]);
     }
+    linear_extrude(height = 0.15) text(text, font = "Liberation Sans:style=Bold", valign="center", halign="center",size=4);
 }
 
 module standoff(d=5,screw=1.5,sh=4) {
     difference() {
         cylinder(d1=d+0.5,d2=d-1,h=sh,$fn=32);
-        cylinder(d=screw-0.5,h=sh+1,$fn=32);
+        cylinder(d=screw-0.3,h=sh+1,$fn=32);
+        translate([0,0,sh-0.999])
+        cylinder(d2=screw+0.3,d1=screw-0.3,h=1,$fn=32);
     }
 }
 
