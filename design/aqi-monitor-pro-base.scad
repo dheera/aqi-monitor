@@ -1,4 +1,5 @@
-   
+//translate([0,0,21.5]) rotate([0,180,0]) import("aqi-monitor-pro-cover.stl");
+
 difference() {
     union() {
             cube_center([105,180,1.5]);

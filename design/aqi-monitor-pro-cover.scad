@@ -1,24 +1,25 @@
 {
   difference() {
       union() {
-    cube_center([105+3,180+3,23],r=2.5);
+    cube_center([105+3,180+3,22],r=2.5);
           
       }
   translate([0,0,1.5])
   difference() {
-    cube_center([105.3,180.3,23]);
-      cube_center([11,29,0.5+2.5]);
+    cube_center([105.3,180.3,22]);
+    cube_center([11,29,0.5+2.5-1]);
   }
+  
+  // holes
   difference() {
     for(x=[-48:6:48]) for(y=[-84:6:84])
       translate([x,y,0])
       cube_center([3.5,3.5,3]);
-    
       cube_center([17,41,100]);
   }
   
-  translate([-60,27+4,23-8])
-  //cube_center([100,16,11]);
+  // usb plug
+  translate([-60,27+4,22-8])
   rotate([90,0,90]) {
         usbplugshape(Q=12.5+2,R=7.75+2);
     }
@@ -33,9 +34,10 @@
   difference() {
               for(s=[-1,1]) for(t=[-1,0,1])
             translate([s*97/2,t*172/2])
-            cube_center([8.3,8.3,8-0.15]);
+            cube_center([8.3,8.3,7-0.15]);
+            
           
-  for(s=[-1,1]) for(t=[-1,0,1]) {
+        for(s=[-1,1]) for(t=[-1,0,1]) {
         translate([s*97/2,t*172/2,1.5]) {
             cylinder(d=5.4,h=15,$fn=64);
         }
