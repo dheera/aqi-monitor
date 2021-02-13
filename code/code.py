@@ -92,7 +92,7 @@ def display(line, text):
 print("init net")
 display(0, "init net")
 
-from net import requests
+from net import requests, geo
 
 if LOAD_WATCHDOG:
     w.feed()
@@ -135,7 +135,7 @@ if LOAD_MCGASV2:
     link.log("info", "init mcgasv2")
     link.sync()
 
-    gas = seeed_mcgasv2.Gas(i2c)
+    gas = seeed_mcgasv2.Gas(i2c1)
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -324,6 +324,32 @@ while True:
                         msg["data"] = out_value
         
             link.message(topic, _type, msg)
+
+    if "location" in geo:
+        link.message("/fix", "sensor_msgs/NavSatFix", {
+            "header": {
+                "seq": 0,
+                "stamp": {
+                    "secs": time.time(),
+                    "nsecs": 0,
+                },
+                "frame_id": "base_link",
+            },
+            "latitude": geo["location"].get("lat", 0),
+            "longitude": geo["location"].get("lng", 0),
+            "position_covariance": [
+                geo["location"].get("accuracy", 100),
+                0,
+                0,
+                0,
+                geo["location"].get("accuracy", 100),
+                0,
+                0,
+                0,
+                geo["location"].get("accuracy", 100)**2,
+            ],
+            "position_covariance_type": 1,
+        })
 
     print("loop", (time.monotonic_ns() - t)/1.0e6, "ms")
 
