@@ -2,12 +2,15 @@ print("Starting ...")
 
 import board
 import busio
+import display
 import gc
 import os
 import sys
 import time
 import microcontroller
 from config import *
+
+time.sleep(5)
 
 if LOAD_WATCHDOG:
     from watchdog import WatchDogMode
@@ -21,12 +24,6 @@ print("import libraries")
 
 if LOAD_FREEDOM:
     import freedomrobotics
-if LOAD_DISPLAY:
-    import displayio
-    import terminalio
-    import adafruit_displayio_ssd1306
-    from adafruit_display_text import label
-    displayio.release_displays()
 if LOAD_BME680:
     import adafruit_bme680
 if LOAD_SGP30:
@@ -42,6 +39,8 @@ if LOAD_BNO08X:
     from adafruit_bno08x.i2c import BNO08X_I2C
 if LOAD_PMSA003I:
     from adafruit_pm25.i2c import PM25_I2C
+if LOAD_RADSENSE:
+    import radsense
 if LOAD_WATCHDOG:
     w.feed()
 
@@ -61,36 +60,13 @@ if LOAD_WATCHDOG:
 
 if LOAD_DISPLAY:
     print("init display")
-    display_bus = displayio.I2CDisplay(i2c, device_address=0x3c)
-    WIDTH = 128
-    HEIGHT = 32
-    display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT)
-    splash = displayio.Group(max_size=10)
-    display.show(splash)
-    color_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
-    color_palette = displayio.Palette(1)
-    color_palette[0] = 0x000000 # White
-    bg_sprite = displayio.TileGrid(color_bitmap, pixel_shader=color_palette, x=0, y=0)
-
-    splash.append(bg_sprite)
-    text = " "
-    text_area = label.Label(terminalio.FONT, text=text, color=0xFFFFFF, x=0, y=3)
-    splash.append(text_area)
-    text_area = label.Label(terminalio.FONT, text=text, color=0xFFFFFF, x=0, y=13)
-    splash.append(text_area)
-    text_area = label.Label(terminalio.FONT, text=text, color=0xFFFFFF, x=0, y=23)
-    splash.append(text_area)
+    display.init(i2c)
 
     if LOAD_WATCHDOG:
         w.feed()
 
-def display(line, text):
-    if LOAD_DISPLAY:
-        text_area = label.Label(terminalio.FONT, text=text, color=0xFFFFFF, x=0, y=3+10*line)
-        splash[1+line] = text_area
-
 print("init net")
-display(0, "init net")
+display.show(0, "init net")
 
 from net import requests, geo
 
@@ -99,7 +75,7 @@ if LOAD_WATCHDOG:
 
 if LOAD_FREEDOM:
     print("init link")
-    display(0, "init link")
+    display.show(0, "init link")
     link = freedomrobotics.NanoLink(requests = requests, auto_sync = False)
 
     print("device:")
@@ -116,7 +92,7 @@ def log(text):
 
 if LOAD_BNO08X:
     print("init bno08x")
-    display(0, "init bno08x")
+    display.show(0, "init bno08x")
     link.log("info", "init bno08x")
     link.sync()
 
@@ -131,18 +107,18 @@ if LOAD_BNO08X:
 
 if LOAD_MCGASV2:
     print("init mcgasv2")
-    display(0, "init mcgasv2")
+    display.show(0, "init mcgasv2")
     link.log("info", "init mcgasv2")
     link.sync()
 
-    gas = seeed_mcgasv2.Gas(i2c1)
+    gas = seeed_mcgasv2.Gas(i2c)
 
     if LOAD_WATCHDOG:
         w.feed()
 
 if LOAD_BME680:
     print("init bme680")
-    display(0, "init bme680")
+    display.show(0, "init bme680")
     link.log("info", "init mcgasv2")
     link.sync()
 
@@ -154,7 +130,7 @@ if LOAD_BME680:
 
 if LOAD_SGP30:
     print("init sgp30")
-    display(0, "init sgp30")
+    display.show(0, "init sgp30")
     link.log("info", "init sgp30")
     link.sync()
 
@@ -171,7 +147,7 @@ if LOAD_SGP30:
 
 if LOAD_SCD30:
     print("init scd30")
-    display(0, "init scd30")
+    display.show(0, "init scd30")
     link.log("info", "init scd30")
     link.sync()
 
@@ -182,7 +158,7 @@ if LOAD_SCD30:
 
 if LOAD_SEN0321:
     print("init sen0321")
-    display(0, "init sen0321")
+    display.show(0, "init sen0321")
     link.log("info", "init sen0321")
     link.sync()
 
@@ -195,7 +171,7 @@ if LOAD_SEN0321:
 
 if LOAD_PMSA003I:
     print("init pm25")
-    display(0, "init pm25")
+    display.show(0, "init pm25")
     link.log("info", "init pm25")
     link.sync()
 
@@ -204,6 +180,14 @@ if LOAD_PMSA003I:
 
     if LOAD_WATCHDOG:
         w.feed()
+
+if LOAD_RADSENSE:
+    print("init radsense")
+    display.show(0, "init radsense")
+    link.log("info", "init radsense")
+    link.sync()
+
+    radsense = radsense.Radsense_1_2(i2c)
 
 display_page = 0
 
@@ -228,9 +212,9 @@ while True:
             data.append(("/pmsa003i/pm25_standard", "std_msgs/Float32", {"data": aqdata_filtered["pm25_standard"]}))
             data.append(("/pmsa003i/pm100_standard", "std_msgs/Float32", {"data": aqdata_filtered["pm100_standard"]}))
             if display_page == 0:
-                display(0, "PM2.5:  %.1f" % aqdata_filtered["pm25_standard"])
-                display(1, "PM10:   %.1f" % aqdata_filtered["pm10_standard"])
-                display(2, "PM100:  %.1f" % aqdata_filtered["pm100_standard"])
+                display.show(0, "PM2.5:  %.1f" % aqdata_filtered["pm25_standard"])
+                display.show(1, "PM10:   %.1f" % aqdata_filtered["pm10_standard"])
+                display.show(2, "PM100:  %.1f" % aqdata_filtered["pm100_standard"])
         except RuntimeError:
             print("error reading pm25 data")
 
@@ -241,9 +225,9 @@ while True:
             data.append(("/sgp30/baseline_tvoc", "std_msgs/Float32", {"data": sgp30.baseline_TVOC}))
             data.append(("/sgp30/baseline_eco2", "std_msgs/Float32", {"data": sgp30.baseline_eCO2}))
             if display_page == 1:
-                display(0, "eCO2:   %.2f ppm" % sgp30.eCO2)
-                display(1, "TVOC:   %.2f ppb" % sgp30.TVOC)
-                display(2, " ")
+                display.show(0, "eCO2:   %.2f ppm" % sgp30.eCO2)
+                display.show(1, "TVOC:   %.2f ppb" % sgp30.TVOC)
+                display.show(2, " ")
         except:
             print("error reading sgp30 data")
 
@@ -260,9 +244,9 @@ while True:
                 if temp > 0:
                     data.append(("/scd30/temp", "std_msgs/Float32", {"data": temp}))
                 if display_page == 2:
-                    display(0, "CO2:   %.2f ppm" % co2)
-                    display(1, "Hum:   %.2f pc" %humidity)
-                    display(2, "Temp:  %.2f C" % temp)
+                    display.show(0, "CO2:   %.2f ppm" % co2)
+                    display.show(1, "Hum:   %.2f pc" %humidity)
+                    display.show(2, "Temp:  %.2f C" % temp)
         except:
             print("error reading scd30 data")
 
@@ -271,9 +255,9 @@ while True:
             gas_data = gas.measure_all()
             data.append(("/mcgasv2/raw", "mcgasv2_msgs/RawData", {"gm102b": gas_data[0], "gm302b": gas_data[1], "gm502b": gas_data[2], "gm702b": gas_data[3]}))
             if display_page == 3:
-                display(0, "102: %1.2f 302: %1.2f" % (gas_data[0], gas_data[1]))
-                display(1, "502: %1.2f 702: %1.2f" % (gas_data[2], gas_data[3]))
-                display(2, " ")
+                display.show(0, "102: %1.2f 302: %1.2f" % (gas_data[0], gas_data[1]))
+                display.show(1, "502: %1.2f 702: %1.2f" % (gas_data[2], gas_data[3]))
+                display.show(2, " ")
         except:
             print("error reading mcgasv2 data")
 
@@ -282,9 +266,9 @@ while True:
             ozone_ppb = ozone.get_ozone_data(10)
             data.append(("/sen0321/ozone", "std_msgs/Float32", {"data": ozone_ppb}))
             if display_page == 4:
-                display(0, "O3: %.2f ppb" % ozone_ppb)
-                display(1, " ")
-                display(2, " ")
+                display.show(0, "O3: %.2f ppb" % ozone_ppb)
+                display.show(1, " ")
+                display.show(2, " ")
         except:
             print("error reading ozone data")
 
@@ -297,11 +281,21 @@ while True:
             data.append(("/bme680/temp", "std_msgs/Float32", {"data": bme680.temperature}))
             data.append(("/bme680/gas", "std_msgs/Float32", {"data": bme680.gas}))
             if display_page == 5:
-                display(0, "Press: %.2f hPa" % bme680.pressure)
-                display(1, "Temp:  %.2f C" % bme680.temperature)
-                display(2, "Hum:   %.2f pc" % bme680.relative_humidity)
+                display.show(0, "Press: %.2f hPa" % bme680.pressure)
+                display.show(1, "Temp:  %.2f C" % bme680.temperature)
+                display.show(2, "Hum:   %.2f pc" % bme680.relative_humidity)
         except:
             print("error reading bme680 data")
+
+    if LOAD_RADSENSE:
+        try:
+            radsense.update_data()
+            data.append(("/radsense/pulse_count", "std_msgs/Int32", {"data": radsense.get_pulse_count()}))
+            data.append(("/radsense/rad_intensity_dynamic", "std_msgs/Float32", {"data": radsense.get_rad_intensity_dynamic()}))
+            data.append(("/radsense/rad_intensity_static", "std_msgs/Float32", {"data": radsense.get_rad_intensity_static()}))
+        except Exception as e:
+            print("error reading radsense data")
+            sys.print_exception(e)
 
     if LOAD_BNO08X:
         pass
