@@ -135,7 +135,7 @@ if LOAD_SGP30:
     link.sync()
 
     sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
-    print("SGP30 serial #", [hex(i) for i in sgp30.serial])
+    print("SGP30 serial # %04x-%04x-%04x" % tuple(sgp30.serial))
     sgp30.iaq_init()
     iaq_baseline = link.device.get("config.aqm.scd30", {}).get("iaq_baseline", [0x8973, 0x8AAE])
     if len(iaq_baseline) != 2 or type(iaq_baseline[0]) != int or type(iaq_baseline[1]) != int:
@@ -215,8 +215,9 @@ while True:
                 display.show(0, "PM2.5:  %.1f" % aqdata_filtered["pm25_standard"])
                 display.show(1, "PM10:   %.1f" % aqdata_filtered["pm10_standard"])
                 display.show(2, "PM100:  %.1f" % aqdata_filtered["pm100_standard"])
-        except RuntimeError:
+        except RuntimeError as e:
             print("error reading pm25 data")
+            sys.print_exception(e)
 
     if LOAD_SGP30:
         try:
@@ -228,8 +229,9 @@ while True:
                 display.show(0, "eCO2:   %.2f ppm" % sgp30.eCO2)
                 display.show(1, "TVOC:   %.2f ppb" % sgp30.TVOC)
                 display.show(2, " ")
-        except:
+        except Exception as e:
             print("error reading sgp30 data")
+            sys.print_exception(e)
 
     if LOAD_SCD30:
         try:
@@ -247,8 +249,9 @@ while True:
                     display.show(0, "CO2:   %.2f ppm" % co2)
                     display.show(1, "Hum:   %.2f pc" %humidity)
                     display.show(2, "Temp:  %.2f C" % temp)
-        except:
+        except Exception as e:
             print("error reading scd30 data")
+            sys.print_exception(e)
 
     if LOAD_MCGASV2:
         try:
@@ -258,8 +261,9 @@ while True:
                 display.show(0, "102: %1.2f 302: %1.2f" % (gas_data[0], gas_data[1]))
                 display.show(1, "502: %1.2f 702: %1.2f" % (gas_data[2], gas_data[3]))
                 display.show(2, " ")
-        except:
+        except Exception as e:
             print("error reading mcgasv2 data")
+            sys.print_exception(e)
 
     if LOAD_SEN0321:
         try:
@@ -269,8 +273,9 @@ while True:
                 display.show(0, "O3: %.2f ppb" % ozone_ppb)
                 display.show(1, " ")
                 display.show(2, " ")
-        except:
+        except Exception as e:
             print("error reading ozone data")
+            sys.print_exception(e)
 
     if LOAD_BME680:
         try:
@@ -284,8 +289,9 @@ while True:
                 display.show(0, "Press: %.2f hPa" % bme680.pressure)
                 display.show(1, "Temp:  %.2f C" % bme680.temperature)
                 display.show(2, "Hum:   %.2f pc" % bme680.relative_humidity)
-        except:
+        except Exception as e:
             print("error reading bme680 data")
+            sys.print_exception(e)
 
     if LOAD_RADSENSE:
         try:
@@ -356,5 +362,10 @@ while True:
         sys.print_exception(e)
 
     seq += 1
+
+    if seq % 10000 == 0:
+        if LOAD_DISPLAY:
+            print("init display")
+            display.init(i2c)
 
     time.sleep(2)
