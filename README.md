@@ -27,18 +27,22 @@ Make sure you get the right case for either base or base+expansion set.
 ### Base set
 
 | item | function | ~price | notes |
+| ---- | -------- | ------ |------ |
 | [Adafruit FeatherS2 - ESP32-S2](https://www.adafruit.com/product/4769) | microcontroller | $22 | adafruit boards are often available on digikey and amazon if adafruit is sold out |
 | [Adafruit BME680](https://www.adafruit.com/product/3660) |Temp/Humidity/Pressure/Gas| $19|incredibly sensitive pressure sensor, can possibly detect which floor of a building robot is on|
 | [Adafruit PMSA003I](https://www.adafruit.com/product/4632) | PM1, PM2.5, PM10 particle sensor | $45 | this messes up the I2C bus it is placed on, thankfully ESP32-S2 has 2 I2C buses so this can have its own bus |
 | [SeeedStudio SCD30](https://www.seeedstudio.com/Grove-CO2-Temperature-Humidity-Sensor-SCD30-p-2911.html) | CO2/temp/humidity sensor | $60 | NDIR CO2 sensor (much better than chemical); buy from Mouser for faster shipping to US destinations |
+
 For a total of ~$146 excluding screen and case.
 
-The STL files for 3D printing the base case can be found in the 
+The STL files for 3D printing the base case can be found in the [design](design) folder.
 
 ### Expansion set
 
 These are extra sensors you can purchase in addition to the base set.
+
 | item | function | ~price | notes |
+| ---- | -------- | ------ |------ |
 | [Adafruit BNO085](https://github.com/adafruit/Adafruit_BNO08x) | IMU (Earthquake detection) | $20 | this is a really good IMU |
 | [SeeedStudio Multichannel Gas Sensor v2](https://www.seeedstudio.com/Grove-Multichannel-Gas-Sensor-v2-p-4569.html) | CO, VOC, alcohol, NO2 | $35 | buy from Mouser for faster shipping to US destinations |
 | [DFRobot I2C Ozone Sensor](https://www.dfrobot.com/product-2005.html) | ozone | $49 | buy from Mouser for faster shipping to US destinations |
@@ -47,6 +51,7 @@ These are extra sensors you can purchase in addition to the base set.
 ### Optional Screen
 
 | item | function | ~price | notes |
+| ---- | -------- | ------ |------ |
 | [Monochrome 0.91" 128x32 I2C OLED Display](https://www.adafruit.com/product/4440) | screen | $12.5 | optional |
 
 ## Instructions
