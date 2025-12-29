@@ -45,7 +45,10 @@ if LOAD_WATCHDOG:
     w.feed()
 
 print("init i2c")
-i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
+gc.collect() # Clear memory before heavy sensor init
+# Set to 400kHz for stability.
+i2c = busio.I2C(board.SCL, board.SDA, frequency=400000)
+
 if LOAD_PMSA003I:
     # PMSA003I needs its own i2c bus because it seems to mess with other i2c devices
     # it also needs a much lower i2c clock frequency per adafruit docs
@@ -58,9 +61,17 @@ if LOAD_PMSA003I:
 if LOAD_WATCHDOG:
     w.feed()
 
+#If the display is physically disconnected or 
+#has a loose wire, display.init(i2c) might crash 
+#the entire script before it even starts monitoring
 if LOAD_DISPLAY:
     print("init display")
-    display.init(i2c)
+    try:
+        display.init(i2c)
+    except Exception as e:
+        print("Display not found or failed to init:", e)
+        LOAD_DISPLAY = False # Disable display logic for the rest of the run
+
 
     if LOAD_WATCHDOG:
         w.feed()
