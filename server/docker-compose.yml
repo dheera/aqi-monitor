@@ -1,0 +1,51 @@
+services:
+  influxdb:
+    image: influxdb:2.7
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME:-admin}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD:?set INFLUXDB_PASSWORD in .env}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG:-aqi-monitor}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET:-aqi}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN:?set INFLUXDB_TOKEN in .env}
+
+  receiver:
+    build: ./receiver
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - influxdb
+    environment:
+      - API_KEY=${API_KEY:?set API_KEY in .env}
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG:-aqi-monitor}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET:-aqi}
+    volumes:
+      - ./devices:/devices:ro
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - INFLUXDB_ORG=${INFLUXDB_ORG:-aqi-monitor}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET:-aqi}
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+
+volumes:
+  influxdb-data:
+  grafana-data:
