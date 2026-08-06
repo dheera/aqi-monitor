@@ -14,7 +14,7 @@ This DIY air quality monitor will measure:
 
 There's an optional case and screen for both. The code is set up to allow you to only use a subset of sensors.
 
-By default, results are uploaded periodically to [Freedom Robotics](https://freedomrobotics.ai) for easy inspection and alerting.
+By default, results are streamed periodically to a self-hosted server (see [server/](server/)) running InfluxDB and Grafana on your LAN, for easy inspection and alerting.
 
 | ![sensor](images/aqi-monitor-pro-inside.jpg) | ![cover](images/aqi-monitor-pro-outside.jpg) |
 | -------------------------------------------- | -------------------------------------------- |
@@ -60,17 +60,21 @@ These are extra sensors you can purchase in addition to the base set.
 
 See pictures
 
+### Set up the server
+
+1. Follow [server/README.md](server/README.md) to bring up the InfluxDB + Grafana stack in Docker on a machine on your LAN, and generate an API key.
+
 ### Modify the parameters
 
 1. Download the [code](code/) and open `wifi.json`. Enter your Wifi name (SSID) and password. The microcontroller needs WiFi access to be able to upload the sensor data.
-2. Create a new device on your FreedomRobotics account. When you get to the installation page, from the link that is shown, copy the `account`, `device`, `token`, and `secret` embedded in it into the `credentials.json` file. This lets the microcontroller send the sensor data to the Freedom API.
+2. Open `credentials.json` and set `url` to your server's address (e.g. `http://192.168.1.50:8080`), `device_id` to a name for this monitor, and `api_key` to the key you generated for the server.
 3. Open [code.py](code/code.py) and modify any of the parameters (`LOAD_XXX`) at the top to match your configuration.
 
 ### Load on the code
 
 Plug the microcontroller into your computer using a USB-C cable. It should appear in your file explorer. Copy and replace the files from the `code` folder including the files you modified into the `CIRCUITPY` folder.
 
-Press reset. You should see data coming through in the Stream tab of FreedomRobotics.
+Press reset. You should see data coming through on the Grafana dashboard.
 
 ## Troubleshooting
 

@@ -22,8 +22,8 @@ if LOAD_WATCHDOG:
 
 print("import libraries")
 
-if LOAD_FREEDOM:
-    import freedomrobotics
+if LOAD_UPLOAD:
+    import nanolink
 if LOAD_BME680:
     import adafruit_bme680
 if LOAD_SGP30:
@@ -61,6 +61,49 @@ if LOAD_PMSA003I:
 if LOAD_WATCHDOG:
     w.feed()
 
+# Some sensor drivers (e.g. adafruit_bme680) block forever polling status
+# registers instead of raising when the chip isn't actually on the bus, which
+# would otherwise hang the watchdog-reset loop indefinitely. Scanning first
+# and skipping absent addresses avoids ever calling into those drivers blind.
+print("scanning i2c bus")
+while not i2c.try_lock():
+    pass
+i2c_addrs = i2c.scan()
+i2c.unlock()
+print("i2c devices found:", [hex(a) for a in i2c_addrs])
+
+if LOAD_PMSA003I:
+    while not i2c1.try_lock():
+        pass
+    i2c1_addrs = i2c1.scan()
+    i2c1.unlock()
+    print("i2c1 devices found:", [hex(a) for a in i2c1_addrs])
+
+if LOAD_BME680 and 0x77 not in i2c_addrs:
+    print("bme680 not found on i2c bus scan")
+    LOAD_BME680 = False
+if LOAD_SGP30 and 0x58 not in i2c_addrs:
+    print("sgp30 not found on i2c bus scan")
+    LOAD_SGP30 = False
+if LOAD_SCD30 and 0x61 not in i2c_addrs:
+    print("scd30 not found on i2c bus scan")
+    LOAD_SCD30 = False
+if LOAD_MCGASV2 and 0x08 not in i2c_addrs:
+    print("mcgasv2 not found on i2c bus scan")
+    LOAD_MCGASV2 = False
+if LOAD_SEN0321 and 0x73 not in i2c_addrs:
+    print("sen0321 not found on i2c bus scan")
+    LOAD_SEN0321 = False
+if LOAD_BNO08X and 0x4A not in i2c_addrs:
+    print("bno08x not found on i2c bus scan")
+    LOAD_BNO08X = False
+if LOAD_RADSENSE and 0x66 not in i2c_addrs:
+    print("radsense not found on i2c bus scan")
+    LOAD_RADSENSE = False
+
+if LOAD_WATCHDOG:
+    w.feed()
+
 #If the display is physically disconnected or 
 #has a loose wire, display.init(i2c) might crash 
 #the entire script before it even starts monitoring
@@ -84,13 +127,13 @@ from net import requests, geo
 if LOAD_WATCHDOG:
     w.feed()
 
-if LOAD_FREEDOM:
+if LOAD_UPLOAD:
     print("init link")
     display.show(0, "init link")
-    link = freedomrobotics.NanoLink(requests = requests, auto_sync = False)
+    link = nanolink.NanoLink(requests = requests, auto_sync = False)
 
-    print("device:")
-    print(link.device)
+    print("device config:")
+    print(link.config)
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -107,11 +150,15 @@ if LOAD_BNO08X:
     link.log("info", "init bno08x")
     link.sync()
 
-    bno = BNO08X_I2C(i2c)
-    bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
-    bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
-    bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
-    bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
+    try:
+        bno = BNO08X_I2C(i2c)
+        bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
+        bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
+        bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
+        bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
+    except Exception as e:
+        print("bno08x not found or failed to init:", e)
+        LOAD_BNO08X = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -122,7 +169,11 @@ if LOAD_MCGASV2:
     link.log("info", "init mcgasv2")
     link.sync()
 
-    gas = seeed_mcgasv2.Gas(i2c)
+    try:
+        gas = seeed_mcgasv2.Gas(i2c)
+    except Exception as e:
+        print("mcgasv2 not found or failed to init:", e)
+        LOAD_MCGASV2 = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -134,7 +185,11 @@ if LOAD_BME680:
     link.sync()
 
     bme680 = None
-    bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c)
+    try:
+        bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c)
+    except Exception as e:
+        print("bme680 not found or failed to init:", e)
+        LOAD_BME680 = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -145,13 +200,17 @@ if LOAD_SGP30:
     link.log("info", "init sgp30")
     link.sync()
 
-    sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
-    print("SGP30 serial # %04x-%04x-%04x" % tuple(sgp30.serial))
-    sgp30.iaq_init()
-    iaq_baseline = link.device.get("config.aqm.scd30", {}).get("iaq_baseline", [0x8973, 0x8AAE])
-    if len(iaq_baseline) != 2 or type(iaq_baseline[0]) != int or type(iaq_baseline[1]) != int:
-        iaq_baseline = [0x8973, 0x8AAE]
-    sgp30.set_iaq_baseline(iaq_baseline[0], iaq_baseline[1])
+    try:
+        sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
+        print("SGP30 serial # %04x-%04x-%04x" % tuple(sgp30.serial))
+        sgp30.iaq_init()
+        iaq_baseline = link.config.get("sgp30", {}).get("iaq_baseline", [0x8973, 0x8AAE])
+        if len(iaq_baseline) != 2 or type(iaq_baseline[0]) != int or type(iaq_baseline[1]) != int:
+            iaq_baseline = [0x8973, 0x8AAE]
+        sgp30.set_iaq_baseline(iaq_baseline[0], iaq_baseline[1])
+    except Exception as e:
+        print("sgp30 not found or failed to init:", e)
+        LOAD_SGP30 = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -162,7 +221,11 @@ if LOAD_SCD30:
     link.log("info", "init scd30")
     link.sync()
 
-    scd30 = adafruit_scd30.SCD30(i2c)
+    try:
+        scd30 = adafruit_scd30.SCD30(i2c)
+    except Exception as e:
+        print("scd30 not found or failed to init:", e)
+        LOAD_SCD30 = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -173,9 +236,13 @@ if LOAD_SEN0321:
     link.log("info", "init sen0321")
     link.sync()
 
-    ozone = dfrobot_ozone.DFRobot_Ozone(i2c)
-    if ozone is not None:
-        ozone.set_mode(dfrobot_ozone.MEASURE_MODE_AUTOMATIC)
+    try:
+        ozone = dfrobot_ozone.DFRobot_Ozone(i2c)
+        if ozone is not None:
+            ozone.set_mode(dfrobot_ozone.MEASURE_MODE_AUTOMATIC)
+    except Exception as e:
+        print("sen0321 not found or failed to init:", e)
+        LOAD_SEN0321 = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -187,7 +254,11 @@ if LOAD_PMSA003I:
     link.sync()
 
     pm25 = None
-    pm25 = PM25_I2C(i2c1, None)
+    try:
+        pm25 = PM25_I2C(i2c1, None)
+    except Exception as e:
+        print("pmsa003i not found or failed to init:", e)
+        LOAD_PMSA003I = False
 
     if LOAD_WATCHDOG:
         w.feed()
@@ -198,7 +269,11 @@ if LOAD_RADSENSE:
     link.log("info", "init radsense")
     link.sync()
 
-    radsense = radsense.Radsense_1_2(i2c)
+    try:
+        radsense = radsense.Radsense_1_2(i2c)
+    except Exception as e:
+        print("radsense not found or failed to init:", e)
+        LOAD_RADSENSE = False
 
 display_page = 0
 
@@ -322,18 +397,18 @@ while True:
         # print("mag", bno.magnetic)
         # print("quat", bno.quaternion)
 
-    if LOAD_FREEDOM:
+    if LOAD_UPLOAD:
+        calibration = link.config.get("calibration", {})
         for topic, _type, msg in data:
-            if "config.aqm.calibration" in link.device:
-                if topic in link.device["config.aqm.calibration"]:
-                    coeffs = link.device["config.aqm.calibration"][topic]
-                    if "data" in msg:
-                        in_value = msg["data"]
-                        out_value = 0
-                        for power, c in enumerate(coeffs):
-                            out_value += c * in_value ** power
-                        msg["data"] = out_value
-        
+            if topic in calibration:
+                coeffs = calibration[topic]
+                if "data" in msg:
+                    in_value = msg["data"]
+                    out_value = 0
+                    for power, c in enumerate(coeffs):
+                        out_value += c * in_value ** power
+                    msg["data"] = out_value
+
             link.message(topic, _type, msg)
 
     if "location" in geo:
@@ -365,8 +440,8 @@ while True:
     print("loop", (time.monotonic_ns() - t)/1.0e6, "ms")
 
     try:
-        if LOAD_FREEDOM and link.sync():
-            # sync to freedom was successful
+        if LOAD_UPLOAD and link.sync():
+            # sync to server was successful
             if LOAD_WATCHDOG:
                 w.feed()
     except Exception as e:

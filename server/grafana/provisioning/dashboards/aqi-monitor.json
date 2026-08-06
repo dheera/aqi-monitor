@@ -1,0 +1,103 @@
+{
+  "title": "AQI Monitor",
+  "uid": "aqi-monitor",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Particulate matter (ug/m3)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "targets": [
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pmsa003i_pm25_standard\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"pm2.5\")",
+          "refId": "A"
+        },
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pmsa003i_pm10_standard\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"pm10\")",
+          "refId": "B"
+        },
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pmsa003i_pm100_standard\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"pm100\")",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "CO2 (ppm)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "targets": [
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"scd30_co2\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"co2\")",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "TVOC / eCO2 (SGP30)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "targets": [
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sgp30_tvoc\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"tvoc\")",
+          "refId": "A"
+        },
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sgp30_eco2\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"eco2\")",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperature (C)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "targets": [
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"bme680_temp\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"bme680\")",
+          "refId": "A"
+        },
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"scd30_temp\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"scd30\")",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Humidity (%) / Pressure (hPa)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "targets": [
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"bme680_humidity\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"humidity\")",
+          "refId": "A"
+        },
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"bme680_pressure\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"pressure\")",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Ozone (ppb)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "influxdb", "uid": "InfluxDB" },
+      "targets": [
+        {
+          "query": "from(bucket: \"aqi\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sen0321_ozone\" and r._field == \"data\") |> aggregateWindow(every: v.windowPeriod, fn: mean) |> yield(name: \"ozone\")",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
