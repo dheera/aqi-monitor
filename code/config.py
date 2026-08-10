@@ -6,7 +6,7 @@ LOAD_SGP30 = True      # voc (better than bme680): https://www.adafruit.com/prod
 LOAD_SCD30 = True      # co2, humidity, temp: https://www.seeedstudio.com/Grove-CO2-Temperature-Humidity-Sensor-SCD30-p-2911.html
 LOAD_MCGASV2 = True    # multi-channel gas sensor: https://www.seeedstudio.com/Grove-Multichannel-Gas-Sensor-v2-p-4569.html
 LOAD_SEN0321 = True    # ozone sensor: https://www.dfrobot.com/product-2005.html
-LOAD_BNO08X = False    # imu: https://www.adafruit.com/product/4754
+LOAD_BNO08X = True    # imu: https://www.adafruit.com/product/4754
 LOAD_PMSA003I = True   # air quality particulate matter sensor: https://www.adafruit.com/product/4632
 LOAD_RADSENSE = True   # RadSense 1.2 Geiger counter https://www.ebay.com/itm/Arduino-dosimeter-module-Geiger-Counter-RadSens-Radiation-Detector-board-pcb-/184495660379
 

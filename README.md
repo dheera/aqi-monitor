@@ -68,7 +68,7 @@ See pictures
 
 1. Download the [code](code/) and open `wifi.json`. Enter your Wifi name (SSID) and password. The microcontroller needs WiFi access to be able to upload the sensor data.
 2. Open `credentials.json` and set `url` to your server's address (e.g. `http://192.168.1.50:8080`), `device_id` to a name for this monitor, and `api_key` to the key you generated for the server.
-3. Open [code.py](code/code.py) and modify any of the parameters (`LOAD_XXX`) at the top to match your configuration.
+3. Open [config.py](code/config.py) and modify any of the parameters (`LOAD_XXX`) to match your configuration.
 
 ### Load on the code
 
