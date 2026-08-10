@@ -9,3 +9,8 @@ LOAD_SEN0321 = True    # ozone sensor: https://www.dfrobot.com/product-2005.html
 LOAD_BNO08X = False    # imu: https://www.adafruit.com/product/4754
 LOAD_PMSA003I = True   # air quality particulate matter sensor: https://www.adafruit.com/product/4632
 LOAD_RADSENSE = True   # RadSense 1.2 Geiger counter https://www.ebay.com/itm/Arduino-dosimeter-module-Geiger-Counter-RadSens-Radiation-Detector-board-pcb-/184495660379
+
+# Self-heating offsets (degrees C, subtracted from the raw reading). 0.0 = no
+# correction.
+BME680_TEMP_OFFSET = 0.0
+SCD30_TEMP_OFFSET = 0.0
