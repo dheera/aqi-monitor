@@ -68,13 +68,51 @@ See pictures
 
 1. Download the [code](code/) and open `wifi.json`. Enter your Wifi name (SSID) and password. The microcontroller needs WiFi access to be able to upload the sensor data.
 2. Open `credentials.json` and set `url` to your server's address (e.g. `http://192.168.1.50:8080`), `device_id` to a name for this monitor, and `api_key` to the key you generated for the server.
-3. Open [code.py](code/code.py) and modify any of the parameters (`LOAD_XXX`) at the top to match your configuration.
+3. Open [config.py](code/config.py) and modify any of the parameters (`LOAD_XXX`) to match your configuration.
 
 ### Load on the code
 
 Plug the microcontroller into your computer using a USB-C cable. It should appear in your file explorer. Copy and replace the files from the `code` folder including the files you modified into the `CIRCUITPY` folder.
 
 Press reset. You should see data coming through on the Grafana dashboard.
+
+### Calibrate the sensors
+
+The BME680 and SCD30 tend to read several degrees high for temperature due to
+self-heating from nearby components. Correct for this once per physical unit:
+
+1. Let the device run outside (or wherever you have a reliable reference
+   temperature) for a few minutes so the sensors reach steady state.
+2. Read `bme680.temperature` and `scd30.temperature` over the serial REPL (see
+   Troubleshooting below) and compare against your reference thermometer.
+3. In `config.py`, set `BME680_TEMP_OFFSET` and `SCD30_TEMP_OFFSET` to
+   `sensor_reading - reference_temperature` for each sensor, then reload. Both
+   default to `0.0` (no correction) until calibrated.
+
+The SCD30's CO2 reading can drift over time and benefits from a one-time
+forced recalibration (FRC) against a known-good reference, typically fresh
+outdoor air (check the current atmospheric CO2 level rather than assuming the
+outdated "400 ppm" figure). The sensor must have been running continuously
+for at least 2 minutes before this. Over the serial REPL:
+
+```
+import board, busio, adafruit_scd30
+i2c = busio.I2C(board.SCL, board.SDA, frequency=400000)
+scd = adafruit_scd30.SCD30(i2c)
+scd.forced_recalibration_reference = 425  # replace with your reference ppm
+```
+
+Unlike the temperature offsets, this value is stored on the SCD30's own
+non-volatile memory rather than in this repo - it isn't reapplied
+automatically and won't carry over if you swap sensors. There's no way to
+read back when a sensor was last calibrated, so note the date and reference
+value you used somewhere (e.g. a commit message) when you do it.
+
+An alternative to a one-time FRC is enabling Automatic Self-Calibration
+(`scd.self_calibration_enabled = True`), which continuously self-corrects
+over about a week assuming the sensor sees fresh air periodically. Its
+enabled state is not stored in non-volatile memory, so it turns off after
+every reboot unless re-enabled in `code.py`.
 
 ## Troubleshooting
 

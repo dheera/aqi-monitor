@@ -223,6 +223,7 @@ if LOAD_SCD30:
 
     try:
         scd30 = adafruit_scd30.SCD30(i2c)
+        scd30.temperature_offset = SCD30_TEMP_OFFSET
     except Exception as e:
         print("scd30 not found or failed to init:", e)
         LOAD_SCD30 = False
@@ -369,11 +370,11 @@ while True:
             if LOAD_SCD30:
                 scd30.ambient_pressure = int(bme680.pressure)
             data.append(("/bme680/humidity", "std_msgs/Float32", {"data": bme680.relative_humidity}))
-            data.append(("/bme680/temp", "std_msgs/Float32", {"data": bme680.temperature}))
+            data.append(("/bme680/temp", "std_msgs/Float32", {"data": bme680.temperature - BME680_TEMP_OFFSET}))
             data.append(("/bme680/gas", "std_msgs/Float32", {"data": bme680.gas}))
             if display_page == 5:
                 display.show(0, "Press: %.2f hPa" % bme680.pressure)
-                display.show(1, "Temp:  %.2f C" % bme680.temperature)
+                display.show(1, "Temp:  %.2f C" % (bme680.temperature - BME680_TEMP_OFFSET))
                 display.show(2, "Hum:   %.2f pc" % bme680.relative_humidity)
         except Exception as e:
             print("error reading bme680 data")
